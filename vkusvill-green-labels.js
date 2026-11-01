@@ -1,6 +1,27 @@
 (function() {
     'use strict';
 
+    // ================== НАСТРОЙКИ ==================
+
+    // Твой числовой id ВК, куда приходят уведомления. vk.com/id123456789
+    const VK_USER_ID = 12345678;
+
+    // API-токен сообщества ВК с правами на отправку сообщений.
+    const VK_ACCESS_TOKEN = 'token';
+
+    // Интервал проверки в секундах.
+    // Фактическая пауза = интервал ± 25% случайного разброса, минимум 20 секунд.
+    const BASE_INTERVAL_SECONDS = 130;
+
+    // Присылать ли блок "ПРОПАЛИ" в VK
+    const SEND_REMOVED = true;
+
+    // Отслеживаемые товары (поиск по вхождению, case-insensitive)
+    const TRACKED = ['арбуз', 'укроп'];
+    const TRACKED_LC = TRACKED.map(x => x.toLowerCase());
+
+    // ==============================================
+
     // ---------- глобальный реестр (общий для всех запусков) ----------
     if (!window.__vvGreenLabelsRegistry) {
         window.__vvGreenLabelsRegistry = {
@@ -14,28 +35,11 @@
     // Если уже работает — не плодим второй экземпляр
     if (registry.running > 0) {
         console.warn(
-            '%c[ВНИМАНИЕ] Мониторинг уже запущен. Сначала остановите: stopGreenLabelsMonitor()',
+            '%c[ВНИМАНИЕ] Мониторинг уже запущен. Сначала останови: stopGreenLabelsMonitor()',
             'color:#FF9800;font-weight:bold;'
         );
         return;
     }
-
-    // Интервал проверки в секундах.
-    // К значению добавляется случайный разброс ±25%.
-    const BASE_INTERVAL_SECONDS = 130;
-
-    // Присылать ли блок "ПРОПАЛИ" в VK
-    const SEND_REMOVED = false;
-
-    // Отслеживаемые товары (поиск по вхождению, case-insensitive)
-    const TRACKED = ['манго', 'арбуз', 'дыня', 'Яблоко Кубанское сладкое'];
-    const TRACKED_LC = TRACKED.map(x => x.toLowerCase());
-
-    // Твой числовой id ВК, куда приходят уведомления. vk.com/id123456789
-    const VK_USER_ID = 12345678;
-
-    // API-токен сообщества ВК с правами на отправку сообщений.
-    const VK_ACCESS_TOKEN = 'token';
 
     const API_URL = 'https://vkusvill.ru/ajax/delivery_order/cart_prods_modal/template.php';
     const API_BODY = new URLSearchParams({
