@@ -20,16 +20,21 @@
         return;
     }
 
+    // Интервал проверки в секундах.
+    // К значению добавляется случайный разброс ±25%.
     const BASE_INTERVAL_SECONDS = 130;
 
     // Присылать ли блок "ПРОПАЛИ" в VK
     const SEND_REMOVED = false;
 
-    // Интересные товары (поиск по вхождению, case-insensitive)
-    const INTERESTING = ['манго', 'арбуз', 'дыня', 'Яблоко Кубанское сладкое'];
-    const INTERESTING_LC = INTERESTING.map(x => x.toLowerCase());
+    // Отслеживаемые товары (поиск по вхождению, case-insensitive)
+    const TRACKED = ['манго', 'арбуз', 'дыня', 'Яблоко Кубанское сладкое'];
+    const TRACKED_LC = TRACKED.map(x => x.toLowerCase());
 
+    // Твой числовой id ВК, куда приходят уведомления. vk.com/id123456789
     const VK_USER_ID = 12345678;
+
+    // API-токен сообщества ВК с правами на отправку сообщений.
     const VK_ACCESS_TOKEN = 'token';
 
     const API_URL = 'https://vkusvill.ru/ajax/delivery_order/cart_prods_modal/template.php';
@@ -88,9 +93,9 @@
         return s.trim();
     }
 
-    function matchInteresting(title) {
+    function matchTracked(title) {
         const lc = title.toLowerCase();
-        return INTERESTING_LC.some(k => lc.includes(k));
+        return TRACKED_LC.some(k => lc.includes(k));
     }
 
     // ---------- запрос к API ----------
@@ -191,9 +196,9 @@
                 previousItems.forEach(x => { if (!currentItems.has(x)) removed.push(x); });
             }
 
-            const hasInteresting = [...currentItems].some(matchInteresting);
-            const interestingHeader = hasInteresting
-                ? '⭐ Есть Интересные товары.\n\n'
+            const hasTracked = [...currentItems].some(matchTracked);
+            const trackedHeader = hasTracked
+                ? '⭐ Есть отслеживаемые товары.\n\n'
                 : '';
 
             // -------- пустой список --------
@@ -230,20 +235,20 @@
                     'color:#2196F3;font-weight:bold;');
                 const list = [...currentItems];
                 list.forEach((x, i) => {
-                    const mark = matchInteresting(x) ? '⭐ ' : '';
+                    const mark = matchTracked(x) ? '⭐ ' : '';
                     console.log(`  ${i + 1}. ${mark}${x}`);
                 });
                 const body = list.map((x, i) =>
-                    `${i + 1}. ${matchInteresting(x) ? '⭐ ' : ''}${x}`
+                    `${i + 1}. ${matchTracked(x) ? '⭐ ' : ''}${x}`
                 ).join('\n');
                 sendToVK(
-                    `${interestingHeader}🚀 ВкусВилл: первый запуск\nТекущие зелёные ценники (${currentItems.size}):\n${body}`
+                    `${trackedHeader}🚀 ВкусВилл: первый запуск\nТекущие зелёные ценники (${currentItems.size}):\n${body}`
                 );
                 isFirstRun = false;
             } else if (added.length === 0 && removed.length === 0) {
                 console.log('%cИзменений нет.', 'color:#757575;');
-                if (hasInteresting) {
-                    console.log('%c⭐ Среди них есть интересные.', 'color:#FFC107;font-weight:bold;');
+                if (hasTracked) {
+                    console.log('%c⭐ Среди них есть отслеживаемые.', 'color:#FFC107;font-weight:bold;');
                 }
             } else {
                 const parts = [];
@@ -251,11 +256,11 @@
                     console.log(`%c[+] добавилось (${added.length})`,
                         'color:#4CAF50;font-weight:bold;');
                     added.forEach(x => {
-                        const mark = matchInteresting(x) ? '⭐ ' : '';
+                        const mark = matchTracked(x) ? '⭐ ' : '';
                         console.log(`  + ${mark}${x}`);
                     });
                     parts.push(`➕ ДОБАВИЛИСЬ:\n${added.map(x =>
-                        `• ${matchInteresting(x) ? '⭐ ' : ''}${x}`).join('\n')}`);
+                        `• ${matchTracked(x) ? '⭐ ' : ''}${x}`).join('\n')}`);
                 }
                 if (removed.length) {
                     console.log(`%c[-] пропало (${removed.length})`,
@@ -271,7 +276,7 @@
                         'color:#757575;');
                 } else {
                     sendToVK(
-                        `${interestingHeader}🔔 Изменение Зелёных ценников!\n\n${parts.join('\n\n')}`
+                        `${trackedHeader}🔔 Изменение Зелёных ценников!\n\n${parts.join('\n\n')}`
                     );
                 }
             }
